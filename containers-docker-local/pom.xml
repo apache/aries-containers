@@ -39,6 +39,12 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.utils</artifactId>
+            <version>1.10.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>
 

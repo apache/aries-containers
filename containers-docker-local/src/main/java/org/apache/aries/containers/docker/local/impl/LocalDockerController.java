@@ -18,7 +18,7 @@
  */
 package org.apache.aries.containers.docker.local.impl;
 
-import java.io.LineNumberReader;
+import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,23 +48,48 @@ public class LocalDockerController {
         return new DockerContainerInfo(id, LocalDockerContainerFactory.getContainerHost());
     }
 
+    public List<String> ps(String labelFilter) {
+        String res = runCommand("docker", "ps", "-q", "-f", "label=" + labelFilter);
+
+        String[] sa = res.trim().split("\\s+");
+        List<String> sl = new ArrayList<>(sa.length);
+        for (String s : sa) {
+            s = s.trim();
+            if (s.length() > 0)
+                sl.add(s);
+        }
+        return sl;
+    }
+
+    public String inspect(String... ids) {
+        String[] command = new String[ids.length+2];
+        command[0] = "docker";
+        command[1] = "inspect";
+        System.arraycopy(ids, 0, command, 2, ids.length);
+        return runCommand(command);
+    }
+
     String runCommandExpectSingleID(String ... command) throws Exception {
-        String res = ProcessRunner.waitFor(ProcessRunner.run(command));
+        String res = runCommand(command);
         if (res != null) {
             res = res.trim();
             String lastLine = res;
-            try ( final LineNumberReader lnr = new LineNumberReader(new StringReader(res)) ) {
+            try (BufferedReader lnr = new BufferedReader(new StringReader(res))) {
                 String line;
-                while ( ( line = lnr.readLine()) != null ) {
+                while ((line = lnr.readLine()) != null) {
                     lastLine = line;
                 }
             }
-            if ( lastLine.indexOf(' ') != -1 ) {
+            if (lastLine.indexOf(' ') != -1 ) {
                  throw new Exception("Unable to execute docker command: " + res);
             }
             res = lastLine;
         }
 
         return res;
+    }
+
+    private String runCommand(String... command) {
+        return ProcessRunner.waitFor(ProcessRunner.run(command));
     }
 }

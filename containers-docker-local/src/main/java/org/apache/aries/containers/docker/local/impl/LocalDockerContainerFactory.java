@@ -25,9 +25,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,12 +39,13 @@ import java.util.stream.Stream;
 import org.apache.aries.containers.ContainerFactory;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
+import org.apache.felix.utils.json.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LocalDockerContainerFactory implements ContainerFactory {
     static final Logger LOG = LoggerFactory.getLogger(LocalDockerContainerFactory.class);
-    private static final String SERVICE_NAME = "service.name";
+    private static final String SERVICE_NAME = "org.apache.aries.containers.service.name";
 
     private static final String DOCKER_MACHINE_VM_NAME = System.getenv("DOCKER_MACHINE_NAME");
     private static final boolean CHECK_DOCKER_MACHINE = Stream
@@ -67,8 +70,6 @@ public class LocalDockerContainerFactory implements ContainerFactory {
 
         if (docker == null)
             docker = new LocalDockerController();
-
-        // TODO discover any running docker containers.
     }
 
     @Override
@@ -79,9 +80,10 @@ public class LocalDockerContainerFactory implements ContainerFactory {
         if (existingService != null)
             return existingService;
 
-        // TODO return discovered containers if it contains the requested one.
+        List<ContainerImpl> containers = discoverContainers(config);
+        if (containers.size() == 0)
+            containers = createContainers(config);
 
-        List<ContainerImpl> containers = createContainers(config);
         ServiceImpl svc = new ServiceImpl(config, this, containers);
         for (ContainerImpl c : containers) {
             c.setService(svc);
@@ -148,6 +150,54 @@ public class LocalDockerContainerFactory implements ContainerFactory {
         } else {
             docker.kill(id);
         }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private List<ContainerImpl> discoverContainers(ServiceConfig config) {
+        List<ContainerImpl> res = new ArrayList<>();
+        List<String> ids = docker.ps(SERVICE_NAME + "=" + config.getServiceName());
+        if (ids.size() == 0)
+            return Collections.emptyList();
+
+        String infoJSON = docker.inspect(ids.toArray(new String [] {}));
+        List<Object> data = new JSONParser(infoJSON).getParsedList();
+        for (Object d : data) {
+            if (!(d instanceof Map))
+                continue;
+
+            Map m = (Map) d;
+            Object ns = m.get("NetworkSettings");
+            Map<Integer, Integer> ports = new HashMap<>();
+            if (ns instanceof Map) {
+                Object pd = ((Map) ns).get("Ports");
+                if (pd instanceof Map) {
+                    Map pm = (Map) pd;
+                    for(Map.Entry entry : (Set<Map.Entry>) pm.entrySet()) {
+                        try {
+                            String key = entry.getKey().toString();
+                            int idx = key.indexOf('/');
+                            if (idx > 0)
+                                key = key.substring(0, idx);
+                            int containerPort = Integer.parseInt(key);
+                            int hostPort = -1;
+                            for (Object val : (List) entry.getValue()) {
+                                if (val instanceof Map) {
+                                    hostPort = Integer.parseInt(((Map) val).get("HostPort").toString());
+                                }
+                            }
+
+                            if (hostPort != -1) {
+                                ports.put(containerPort, hostPort);
+                            }
+                        } catch (Exception nfe) {
+                            // ignore parsing exceptions, try next one
+                        }
+                    }
+                }
+            }
+            res.add(new ContainerImpl(m.get("Id").toString(), LocalDockerContainerFactory.getContainerHost(), ports));
+        }
+        return res;
     }
 
     private int getFreePort() throws IOException {
