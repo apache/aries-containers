@@ -46,5 +46,27 @@
             <version>1.10.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>    
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>bnd-process</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <bnd><![CDATA[
+                        Conditional-Package: org.apache.felix.utils.json.*
+                    ]]></bnd>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
 
