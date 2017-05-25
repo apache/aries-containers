@@ -16,22 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.containers;
+package org.apache.aries.containers.docker.local.impl;
 
-import org.osgi.annotation.versioning.ProviderType;
+class DockerContainerInfo {
+    private final String id;
+    private final String ip;
 
-@ProviderType
-public interface Service {
-    /**
-     * Destroy the service and all its containers.
-     */
-    void destroy();
+    public DockerContainerInfo(String id, String ipAddress) {
+        this.id = id;
+        this.ip = ipAddress;
+    }
 
-    /**
-     * Obtain the current instance count.
-     * @return The instance count.
-     */
-    int getActualInstanceCount();
+    public String getID() {
+        return id;
+    }
 
-    void setInstanceCount(int count);
+    public String getIP() {
+        return ip;
+    }
 }

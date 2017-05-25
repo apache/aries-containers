@@ -28,7 +28,7 @@ public class ServiceConfigTest {
                 env("a", "b c d").
                 instances(17).
                 memory(5.5).
-                port(8080, true).
+                port(8080).
                 port(9090).
                 build();
 
@@ -42,7 +42,6 @@ public class ServiceConfigTest {
         assertEquals(expectedEnv, sc.getEnvVars());
         assertEquals(17, sc.getRequestedInstances());
         assertEquals(5.5, sc.getRequestedMemory(), 0.01);
-        assertEquals(8080, sc.getMainPort());
         assertEquals(Arrays.asList(8080, 9090), sc.getContainerPorts());
     }
 

@@ -18,20 +18,23 @@
  */
 package org.apache.aries.containers;
 
-import org.osgi.annotation.versioning.ProviderType;
+import java.util.Map;
 
-@ProviderType
-public interface Service {
-    /**
-     * Destroy the service and all its containers.
-     */
+public interface Container extends Comparable<Container> {
+    @Override
+    default int compareTo(Container other) {
+        return getID().compareTo(other.getID());
+    }
+
     void destroy();
+    String getID();
+    String getIPAddress();
 
-    /**
-     * Obtain the current instance count.
-     * @return The instance count.
+    /* The maps of ports exposed to the outside by the container.
+     * It maps an internal port to an outside port.
+     * @return a map of exposed ports.
      */
-    int getActualInstanceCount();
+    Map<Integer, Integer> getExposedPorts();
 
-    void setInstanceCount(int count);
+    Service getService();
 }

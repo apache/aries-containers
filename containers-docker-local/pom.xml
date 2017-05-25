@@ -17,7 +17,7 @@
  specific language governing permissions and limitations
  under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,22 +25,20 @@
         <groupId>org.apache.aries.containers</groupId>
         <artifactId>org.apache.aries.containers.parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>containers-parent</relativePath>
+        <relativePath>../containers-parent</relativePath>
     </parent>
 
-    <artifactId>org.apache.aries.containers.main</artifactId>
-    <name>Apache Aries Containers reactor</name>
-    <packaging>pom</packaging>
+    <artifactId>org.apache.aries.containers.docker.local</artifactId>
+    <packaging>jar</packaging>
+    <name>Apache Aries Containers impl for local Docker use</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    
-    <modules>
-        <module>containers-parent</module>
-        <module>containers-api</module>
-        <module>containers-docker-local</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.apache.aries.containers.api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
-
 

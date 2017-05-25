@@ -33,7 +33,6 @@ public class ServiceConfig {
     private final String entryPoint;
     private final Map<String, String> envVars;
 //    private final List<HealthCheck> healthChecks;
-    private final int mainPort;
     private final double requestedCPUunits;
     private final int requestedInstances;
     private final double requestedMemory; // in MiB
@@ -41,14 +40,13 @@ public class ServiceConfig {
 
 
     private ServiceConfig(String[] commandLine, String containerImage, List<Integer> containerPorts, String entryPoint,
-            Map<String, String> envVars, int mainPort, double requestedCPUunits, int requestedInstances, double requestedMemory,
+            Map<String, String> envVars, double requestedCPUunits, int requestedInstances, double requestedMemory,
             String serviceName) {
         this.commandLine = commandLine;
         this.containerImage = containerImage;
         this.containerPorts = containerPorts;
         this.entryPoint = entryPoint;
         this.envVars = envVars;
-        this.mainPort = mainPort;
         this.requestedCPUunits = requestedCPUunits;
         this.requestedInstances = requestedInstances;
         this.requestedMemory = requestedMemory;
@@ -75,10 +73,6 @@ public class ServiceConfig {
         return envVars;
     }
 
-    public int getMainPort() {
-        return mainPort;
-    }
-
     public double getRequestedCpuUnits() {
         return requestedCPUunits;
     }
@@ -91,6 +85,10 @@ public class ServiceConfig {
         return requestedMemory;
     }
 
+    /**
+     * The name of the service deployment. This has to be unique in the system.
+     * @return The name of the service.
+     */
     public String getServiceName() {
         return serviceName;
     }
@@ -108,7 +106,6 @@ public class ServiceConfig {
         private double requestedCpuUnits = 0.5;
         private int requestedInstances = 1;
         private double requestedMemory = 64;
-        private int mainPort = -1;
         private List<Integer> ports = new ArrayList<>();
         private String serviceName;
 
@@ -154,23 +151,13 @@ public class ServiceConfig {
         }
 
         public Builder port(int port) {
-            return port(port, false);
-        }
-
-        public Builder port(int port, boolean main) {
             this.ports.add(port);
-            if (main) {
-                if (this.mainPort != -1)
-                    throw new IllegalStateException("A main port has already been set: " + mainPort);
-
-                this.mainPort = port;
-            }
             return this;
         }
 
         public ServiceConfig build() {
             return new ServiceConfig(commandLine, containerImage, ports, entryPoint,
-                    envMap, mainPort, requestedCpuUnits, requestedInstances, requestedMemory,
+                    envMap, requestedCpuUnits, requestedInstances, requestedMemory,
                     serviceName);
         }
     }
