@@ -106,7 +106,7 @@
                 <configuration>
                     <bnd><![CDATA[
                         -exportcontents: ${packages;VERSIONED}
-                        -removeheaders: Private-Package,Include-Resource
+                        -removeheaders: Private-Package, Include-Resource, Tool
                     ]]></bnd>
                 </configuration>
             </plugin>
