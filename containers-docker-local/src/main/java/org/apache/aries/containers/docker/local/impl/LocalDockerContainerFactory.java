@@ -72,6 +72,10 @@ public class LocalDockerContainerFactory implements ContainerFactory {
             docker = new LocalDockerController();
     }
 
+    List<String> getDockerIDs(ServiceConfig config) {
+        return docker.ps(SERVICE_NAME + "=" + config.getServiceName());
+    }
+
     @Override
     public Service getService(ServiceConfig config) throws Exception {
         init();
@@ -155,7 +159,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private List<ContainerImpl> discoverContainers(ServiceConfig config) {
         List<ContainerImpl> res = new ArrayList<>();
-        List<String> ids = docker.ps(SERVICE_NAME + "=" + config.getServiceName());
+        List<String> ids = getDockerIDs(config);
         if (ids.size() == 0)
             return Collections.emptyList();
 

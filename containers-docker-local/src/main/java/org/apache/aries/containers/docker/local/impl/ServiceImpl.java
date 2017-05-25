@@ -44,7 +44,8 @@ public class ServiceImpl implements Service {
 
     @Override
     public int getActualInstanceCount() {
-        return containers.size(); // TODO obtain live
+        return factory.getDockerIDs(config).size();
+        // TODO test
     }
 
     @Override
