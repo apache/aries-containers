@@ -64,7 +64,11 @@ public class ServiceImpl implements Service {
                     killContainer(containers.remove(0));
                 }
             } else {
-                // TODO implement scaling up
+                for (int i=curSize; i < count; i++) {
+                    ContainerImpl c = factory.createDockerContainer(config);
+                    c.setService(this);
+                    containers.add(c);
+                }
             }
         } catch (Exception e) {
             LocalDockerContainerFactory.LOG.error("Problem changing instance count of service {} to {}",
@@ -87,6 +91,10 @@ public class ServiceImpl implements Service {
 
     @Override
     public void refresh() {
-        // TODO
+        containers.clear();
+        for (ContainerImpl c : factory.discoverContainers(config)) {
+            c.setService(this);
+            containers.add(c);
+        }
     }
 }

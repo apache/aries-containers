@@ -62,6 +62,9 @@ public class LocalDockerController {
     }
 
     public String inspect(List<String> ids) {
+        if (ids.size() == 0)
+            return "[]";
+
         List<String> cmd = new ArrayList<>();
         cmd.add("docker");
         cmd.add("inspect");

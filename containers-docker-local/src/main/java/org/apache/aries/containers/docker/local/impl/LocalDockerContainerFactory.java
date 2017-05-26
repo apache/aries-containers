@@ -103,7 +103,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
         return containers;
     }
 
-    private ContainerImpl createDockerContainer(ServiceConfig config) throws Exception {
+    ContainerImpl createDockerContainer(ServiceConfig config) throws Exception {
         List<String> command = new ArrayList<>();
         command.add("-d");
         command.add("-l");
@@ -152,7 +152,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private List<ContainerImpl> discoverContainers(ServiceConfig config) {
+    List<ContainerImpl> discoverContainers(ServiceConfig config) {
         List<ContainerImpl> res = new ArrayList<>();
         List<String> ids = getDockerIDs(config);
         if (ids.size() == 0)
@@ -211,6 +211,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public Set<String> listServices() throws Exception {
         Set<String> res = new HashSet<>();
         List<String> ids = docker.ps(SERVICE_NAME);
