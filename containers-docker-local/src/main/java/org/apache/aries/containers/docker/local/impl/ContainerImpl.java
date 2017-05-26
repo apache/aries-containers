@@ -39,7 +39,11 @@ public class ContainerImpl implements Container {
 
     @Override
     public void destroy() {
-        service.killAndReplaceContainer(this);
+        try {
+            service.killContainer(this);
+        } catch (Exception e) {
+            LocalDockerContainerFactory.LOG.warn("Problem killing container {}", this, e);
+        }
     }
 
     @Override

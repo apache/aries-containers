@@ -76,12 +76,9 @@ public class ServiceImpl implements Service {
         }
     }
 
-    private void killContainer(ContainerImpl container) throws Exception {
+    void killContainer(ContainerImpl container) throws Exception {
         factory.destroyDockerContainer(container.getID(), true);
-    }
-
-    public void killAndReplaceContainer(ContainerImpl containerImpl) {
-        // TODO implement
+        containers.remove(container);
     }
 
     @Override
