@@ -26,7 +26,7 @@ import org.apache.aries.containers.Container;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 
-public class ServiceImpl implements Service {
+class ServiceImpl implements Service {
     private final ServiceConfig config;
     private final List<ContainerImpl> containers;
     private final LocalDockerContainerFactory factory;

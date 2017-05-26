@@ -25,7 +25,7 @@ import java.util.Map;
 import org.apache.aries.containers.Container;
 import org.apache.aries.containers.Service;
 
-public class ContainerImpl implements Container {
+class ContainerImpl implements Container {
     private final String id;
     private final String ip;
     private final Map<Integer, Integer> ports;

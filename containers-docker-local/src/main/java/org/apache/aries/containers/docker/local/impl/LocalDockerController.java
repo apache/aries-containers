@@ -23,8 +23,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LocalDockerController {
-
+class LocalDockerController {
     public String kill(String id) throws Exception {
         return kill(id, "KILL");
     }
