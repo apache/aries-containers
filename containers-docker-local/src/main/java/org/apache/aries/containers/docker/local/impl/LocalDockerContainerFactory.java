@@ -27,15 +27,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.aries.containers.Container;
 import org.apache.aries.containers.ContainerFactory;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
@@ -60,14 +61,10 @@ public class LocalDockerContainerFactory implements ContainerFactory {
 
 
     private volatile LocalDockerController docker;
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final ConcurrentMap<String, Service> services =
             new ConcurrentHashMap<>();
 
-    private void init() {
-        if (!initialized.compareAndSet(false, true))
-            return;
-
+    public LocalDockerContainerFactory() {
         if (docker == null)
             docker = new LocalDockerController();
     }
@@ -78,8 +75,6 @@ public class LocalDockerContainerFactory implements ContainerFactory {
 
     @Override
     public Service getService(ServiceConfig config) throws Exception {
-        init();
-
         Service existingService = services.get(config.getServiceName());
         if (existingService != null)
             return existingService;
@@ -163,7 +158,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
         if (ids.size() == 0)
             return Collections.emptyList();
 
-        String infoJSON = docker.inspect(ids.toArray(new String [] {}));
+        String infoJSON = docker.inspect(ids);
         List<Object> data = new JSONParser(infoJSON).getParsedList();
         for (Object d : data) {
             if (!(d instanceof Map))
@@ -199,6 +194,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
                     }
                 }
             }
+            // TODO check that the settings match!
             res.add(new ContainerImpl(m.get("Id").toString(), LocalDockerContainerFactory.getContainerHost(), ports));
         }
         return res;
@@ -212,5 +208,39 @@ public class LocalDockerContainerFactory implements ContainerFactory {
 
     public static String getContainerHost() {
         return CONTAINER_HOST;
+    }
+
+    @Override
+    public Set<String> listServices() throws Exception {
+        Set<String> res = new HashSet<>();
+        List<String> ids = docker.ps(SERVICE_NAME);
+
+        for (Service svc : services.values()) {
+            res.add(svc.getConfiguration().getServiceName());
+            for (Container c : svc.listContainers()) {
+                ids.remove(c.getID());
+            }
+        }
+
+        String json = docker.inspect(ids);
+        for (Object data : new JSONParser(json).getParsedList()) {
+            // These are services that have been launched previously and are not internally synced yet
+            if (!(data instanceof Map)) {
+                continue;
+            }
+
+            Object cd = ((Map) data).get("Config");
+            if (cd instanceof Map) {
+                Object ld = ((Map) cd).get("Labels");
+                if (ld instanceof Map) {
+                    Object serviceName = ((Map) ld).get(SERVICE_NAME);
+                    if (serviceName instanceof String) {
+                        res.add((String) serviceName);
+                    }
+                }
+            }
+        }
+
+        return res;
     }
 }

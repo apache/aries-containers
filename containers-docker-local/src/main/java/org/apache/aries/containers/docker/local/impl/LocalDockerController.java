@@ -49,7 +49,7 @@ public class LocalDockerController {
     }
 
     public List<String> ps(String labelFilter) {
-        String res = runCommand("docker", "ps", "-q", "-f", "label=" + labelFilter);
+        String res = runCommand("docker", "ps", "-q", "--no-trunc","-f", "label=" + labelFilter);
 
         String[] sa = res.trim().split("\\s+");
         List<String> sl = new ArrayList<>(sa.length);
@@ -61,12 +61,12 @@ public class LocalDockerController {
         return sl;
     }
 
-    public String inspect(String... ids) {
-        String[] command = new String[ids.length+2];
-        command[0] = "docker";
-        command[1] = "inspect";
-        System.arraycopy(ids, 0, command, 2, ids.length);
-        return runCommand(command);
+    public String inspect(List<String> ids) {
+        List<String> cmd = new ArrayList<>();
+        cmd.add("docker");
+        cmd.add("inspect");
+        cmd.addAll(ids);
+        return runCommand(cmd.toArray(new String [] {}));
     }
 
     String runCommandExpectSingleID(String ... command) throws Exception {

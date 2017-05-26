@@ -18,9 +18,11 @@
  */
 package org.apache.aries.containers.docker.local.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.aries.containers.Container;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 
@@ -49,6 +51,11 @@ public class ServiceImpl implements Service {
     }
 
     @Override
+    public ServiceConfig getConfiguration() {
+        return config;
+    }
+
+    @Override
     public void setInstanceCount(int count) {
         try {
             int curSize = containers.size();
@@ -71,5 +78,15 @@ public class ServiceImpl implements Service {
 
     public void killAndReplaceContainer(ContainerImpl containerImpl) {
         // TODO implement
+    }
+
+    @Override
+    public List<Container> listContainers() {
+        return Collections.unmodifiableList(containers);
+    }
+
+    @Override
+    public void refresh() {
+        // TODO
     }
 }

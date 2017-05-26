@@ -18,6 +18,8 @@
  */
 package org.apache.aries.containers;
 
+import java.util.List;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 @ProviderType
@@ -33,5 +35,15 @@ public interface Service {
      */
     int getActualInstanceCount();
 
+    ServiceConfig getConfiguration();
+
+    List<Container> listContainers();
+
     void setInstanceCount(int count);
+
+    /**
+     * Update the internal representation of the service with the actual runtime state
+     * which can be useful if it has been changed from the outside.
+     */
+    void refresh();
 }
