@@ -59,8 +59,7 @@ public class ContainerImpl implements Container {
 
     @Override
     public void destroy() {
-        // TODO Auto-generated method stub
-
+        marathonClient.deleteAppTask(appID, taskID, "true");
     }
 
     @Override
@@ -88,6 +87,4 @@ public class ContainerImpl implements Container {
         return "ContainerImpl [appID=" + appID + ", taskID=" + taskID + ", host=" + host +
                 ", ports=" + ports + ", service=" + service.getConfiguration().getServiceName() + "]";
     }
-
-
 }
