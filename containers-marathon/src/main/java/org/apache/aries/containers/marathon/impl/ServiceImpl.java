@@ -18,7 +18,7 @@
  */
 package org.apache.aries.containers.marathon.impl;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.aries.containers.Container;
@@ -27,6 +27,7 @@ import org.apache.aries.containers.ServiceConfig;
 
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.model.v2.App;
+import mesosphere.marathon.client.model.v2.Task;
 
 class ServiceImpl implements Service {
     private final ServiceConfig configuration;
@@ -56,8 +57,16 @@ class ServiceImpl implements Service {
 
     @Override
     public List<Container> listContainers() {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
+        App app = marathonClient.getApp(marathonAppID).getApp();
+
+        List<Container> res = new ArrayList<>();
+        for (Task t : app.getTasks()) {
+            Container c = new ContainerImpl(marathonClient, app.getId(), t.getId(),
+                    t.getHost(), t.getPorts(), this);
+
+            res.add(c);
+        }
+        return res;
     }
 
     @Override
