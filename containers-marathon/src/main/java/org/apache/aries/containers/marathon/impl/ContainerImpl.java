@@ -68,7 +68,7 @@ public class ContainerImpl implements Container {
     }
 
     @Override
-    public String getIPAddress() {
+    public String getHostName() {
         return host;
     }
 

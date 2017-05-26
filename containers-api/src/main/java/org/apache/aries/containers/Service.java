@@ -31,14 +31,31 @@ public interface Service {
 
     /**
      * Obtain the current instance count.
+     *
      * @return The instance count.
      */
     int getActualInstanceCount();
 
+    /**
+     * Obtain the configuration that defines this service.
+     *
+     * @return The configuration for this service.
+     */
     ServiceConfig getConfiguration();
 
+    /**
+     * List the containers that are currently running the service.
+     *
+     * @return A list of containers.
+     */
     List<Container> listContainers();
 
+    /**
+     * Change the service to run the specified number of replica containers.
+     *
+     * @param count The desired number of containers. The service can temporary be
+     * suspected by using {@code 0} as the instance count.
+     */
     void setInstanceCount(int count);
 
     /**

@@ -42,7 +42,7 @@ public class ServiceConfig {
     private final List<Integer> containerPorts;
     private final String entryPoint;
     private final Map<String, String> envVars;
-//    private final List<HealthCheck> healthChecks;
+//    private final List<HealthCheck> healthChecks; TODO add these!
     private final double requestedCPUunits;
     private final int requestedInstances;
     private final double requestedMemory; // in MiB
