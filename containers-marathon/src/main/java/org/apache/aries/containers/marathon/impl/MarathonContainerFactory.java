@@ -58,7 +58,11 @@ public class MarathonContainerFactory implements ContainerFactory {
 
     @Override
     public Service getService(ServiceConfig config) throws Exception {
-        // TODO get existing service
+        GetAppsResponse existing = marathonClient.getApps(
+                Collections.singletonMap("label", SERVICE_NAME + "==" + config.getServiceName()));
+        if (existing.getApps().size() > 0) {
+            return createServiceFromExistingApp(existing.getApps(), config);
+        }
 
         App app = new App();
         app.setId(config.getServiceName());
@@ -108,6 +112,14 @@ public class MarathonContainerFactory implements ContainerFactory {
         App res = marathonClient.createApp(app);
 
         return createServiceFromApp(res, config);
+    }
+
+    private Service createServiceFromExistingApp(List<App> apps, ServiceConfig config) {
+        if (apps.size() != 1)
+            throw new IllegalStateException("More than one existing app found for service " +
+                    config.getServiceName() + " " + apps);
+
+        return createServiceFromApp(apps.get(0), config);
     }
 
     private Service createServiceFromApp(App app, ServiceConfig cfg) {
