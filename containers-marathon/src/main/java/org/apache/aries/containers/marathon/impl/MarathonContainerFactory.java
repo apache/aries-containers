@@ -20,7 +20,9 @@ package org.apache.aries.containers.marathon.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.aries.containers.ContainerFactory;
@@ -133,22 +135,17 @@ public class MarathonContainerFactory implements ContainerFactory {
 
     @Override
     public Set<String> listServices() throws Exception {
-        GetAppsResponse apps = marathonClient.getApps();
-        return Collections.emptySet();
-//        apps.getApps().stream().filter(a -> a).map(mapper)
+        GetAppsResponse services = marathonClient.getApps(
+                Collections.singletonMap("label", SERVICE_NAME));
 
-        /*
-        return apps.getApps().stream().
-                filter(a -> {
-                    Map<String, String> labels = a.getLabels();
-                    if (labels != null)
-                        return MARK_LABEL_VALUE.equals(a.getLabels().get(MARK_LABEL_KEY));
-                    else
-                        return false;
-                }).
-                map(a -> marathonIdToGroupName(a.getId())).
-                collect(Collectors.toSet());
-        */
+        Set<String> serviceNames = new HashSet<>();
+        for (App app : services.getApps()) {
+            Map<String, String> labels = app.getLabels();
+            String name = labels.get(SERVICE_NAME);
+            if (name != null && name.length() > 0)
+                serviceNames.add(name);
+        }
+        return serviceNames;
     }
 
 }

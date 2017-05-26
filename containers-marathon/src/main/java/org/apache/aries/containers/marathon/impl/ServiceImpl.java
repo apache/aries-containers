@@ -71,15 +71,13 @@ class ServiceImpl implements Service {
 
     @Override
     public void setInstanceCount(int count) {
-        App curApp = marathonClient.getApp(marathonAppID).getApp();
-        curApp.setInstances(count);
-        marathonClient.updateApp(marathonAppID, curApp, true);
+        App updatedApp = new App();
+        updatedApp.setInstances(count);;
+        marathonClient.updateApp(marathonAppID, updatedApp, true);
     }
 
     @Override
     public void refresh() {
-        // TODO Auto-generated method stub
-
+        // No state held - noop
     }
-
 }
