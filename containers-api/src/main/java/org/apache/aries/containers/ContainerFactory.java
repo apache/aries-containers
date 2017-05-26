@@ -6,6 +6,8 @@ import org.osgi.annotation.versioning.ProviderType;
 
 @ProviderType
 public interface ContainerFactory {
+    public static final String BINDING = "container.factory.binding";
+
     Service getService(ServiceConfig config) throws Exception;
 
     Set<String> listServices() throws Exception;

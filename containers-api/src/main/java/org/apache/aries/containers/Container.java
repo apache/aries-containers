@@ -20,6 +20,9 @@ package org.apache.aries.containers;
 
 import java.util.Map;
 
+import org.osgi.annotation.versioning.ProviderType;
+
+@ProviderType
 public interface Container extends Comparable<Container> {
     @Override
     default int compareTo(Container other) {
