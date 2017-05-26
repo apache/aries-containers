@@ -21,7 +21,7 @@ package org.apache.aries.containers.marathon.impl;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.aries.containers.ContainerFactory;
+import org.apache.aries.containers.ServiceManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
@@ -34,7 +34,7 @@ public class MarathonConfigManagedService implements ManagedService {
 
     private final BundleContext bundleContext;
     volatile String marathonURL;
-    volatile ServiceRegistration<ContainerFactory> reg;
+    volatile ServiceRegistration<ServiceManager> reg;
 
     MarathonConfigManagedService(BundleContext bc) {
         bundleContext = bc;
@@ -60,10 +60,10 @@ public class MarathonConfigManagedService implements ManagedService {
             reg.unregister();
 
         marathonURL = marURL;
-        ContainerFactory cf = new MarathonContainerFactory(marathonURL);
+        ServiceManager cf = new MarathonServiceManager(marathonURL);
 
         Dictionary<String, Object> props = new Hashtable<>();
-        props.put(ContainerFactory.BINDING, "marathon");
-        reg = bundleContext.registerService(ContainerFactory.class, cf, props);
+        props.put(ServiceManager.BINDING, "marathon");
+        reg = bundleContext.registerService(ServiceManager.class, cf, props);
     }
 }

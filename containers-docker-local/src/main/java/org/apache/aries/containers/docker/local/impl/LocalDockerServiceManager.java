@@ -37,15 +37,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.aries.containers.Container;
-import org.apache.aries.containers.ContainerFactory;
+import org.apache.aries.containers.ServiceManager;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 import org.apache.felix.utils.json.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalDockerContainerFactory implements ContainerFactory {
-    static final Logger LOG = LoggerFactory.getLogger(LocalDockerContainerFactory.class);
+public class LocalDockerServiceManager implements ServiceManager {
+    static final Logger LOG = LoggerFactory.getLogger(LocalDockerServiceManager.class);
     private static final String SERVICE_NAME = "org.apache.aries.containers.service.name";
 
     private static final String DOCKER_MACHINE_VM_NAME = System.getenv("DOCKER_MACHINE_NAME");
@@ -64,7 +64,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
     private final ConcurrentMap<String, Service> services =
             new ConcurrentHashMap<>();
 
-    public LocalDockerContainerFactory() {
+    public LocalDockerServiceManager() {
         if (docker == null)
             docker = new LocalDockerController();
     }
@@ -195,7 +195,7 @@ public class LocalDockerContainerFactory implements ContainerFactory {
                 }
             }
             // TODO check that the settings match!
-            res.add(new ContainerImpl(m.get("Id").toString(), LocalDockerContainerFactory.getContainerHost(), ports));
+            res.add(new ContainerImpl(m.get("Id").toString(), LocalDockerServiceManager.getContainerHost(), ports));
         }
         return res;
     }

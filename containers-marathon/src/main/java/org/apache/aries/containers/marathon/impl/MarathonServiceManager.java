@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.aries.containers.ContainerFactory;
+import org.apache.aries.containers.ServiceManager;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 
@@ -39,16 +39,16 @@ import mesosphere.marathon.client.model.v2.Docker;
 import mesosphere.marathon.client.model.v2.GetAppsResponse;
 import mesosphere.marathon.client.model.v2.Port;
 
-public class MarathonContainerFactory implements ContainerFactory {
+public class MarathonServiceManager implements ServiceManager {
     private static final String SERVICE_NAME = "org.apache.aries.containers.service.name";
 
     private final Marathon marathonClient;
 
-    public MarathonContainerFactory(String marathonURL) {
+    public MarathonServiceManager(String marathonURL) {
         marathonClient = MarathonClient.getInstance(marathonURL);
     }
 
-    public MarathonContainerFactory(String marathonURL, String dcosUser, String passToken, boolean serviceAcct) {
+    public MarathonServiceManager(String marathonURL, String dcosUser, String passToken, boolean serviceAcct) {
         DCOSAuthCredentials authCredentials;
         if (serviceAcct) {
             authCredentials = DCOSAuthCredentials.forServiceAccount(dcosUser, passToken);

@@ -44,7 +44,7 @@ class LocalDockerController {
         execCmd.addAll(command);
 
         String id = runCommandExpectSingleID(execCmd.toArray(new String [] {}));
-        return new DockerContainerInfo(id, LocalDockerContainerFactory.getContainerHost());
+        return new DockerContainerInfo(id, LocalDockerServiceManager.getContainerHost());
     }
 
     public List<String> ps(String labelFilter) {

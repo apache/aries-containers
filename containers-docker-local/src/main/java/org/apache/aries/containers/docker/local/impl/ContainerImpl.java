@@ -42,7 +42,7 @@ class ContainerImpl implements Container {
         try {
             service.killContainer(this);
         } catch (Exception e) {
-            LocalDockerContainerFactory.LOG.warn("Problem killing container {}", this, e);
+            LocalDockerServiceManager.LOG.warn("Problem killing container {}", this, e);
         }
     }
 

@@ -29,10 +29,10 @@ import org.apache.aries.containers.ServiceConfig;
 class ServiceImpl implements Service {
     private final ServiceConfig config;
     private final List<ContainerImpl> containers;
-    private final LocalDockerContainerFactory factory;
+    private final LocalDockerServiceManager factory;
 
     public ServiceImpl(ServiceConfig config,
-            LocalDockerContainerFactory factory,
+            LocalDockerServiceManager factory,
             List<ContainerImpl> containers) {
         this.config = config;
         this.factory = factory;
@@ -71,7 +71,7 @@ class ServiceImpl implements Service {
                 }
             }
         } catch (Exception e) {
-            LocalDockerContainerFactory.LOG.error("Problem changing instance count of service {} to {}",
+            LocalDockerServiceManager.LOG.error("Problem changing instance count of service {} to {}",
                     config.getServiceName(), count, e);
         }
     }
