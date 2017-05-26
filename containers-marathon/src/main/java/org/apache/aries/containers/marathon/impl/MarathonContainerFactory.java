@@ -27,6 +27,8 @@ import org.apache.aries.containers.ContainerFactory;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 
+import mesosphere.dcos.client.DCOSClient;
+import mesosphere.dcos.client.model.DCOSAuthCredentials;
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.MarathonClient;
 import mesosphere.marathon.client.model.v2.App;
@@ -42,6 +44,16 @@ public class MarathonContainerFactory implements ContainerFactory {
 
     public MarathonContainerFactory(String marathonURL) {
         marathonClient = MarathonClient.getInstance(marathonURL);
+    }
+
+    public MarathonContainerFactory(String marathonURL, String dcosUser, String passToken, boolean serviceAcct) {
+        DCOSAuthCredentials authCredentials;
+        if (serviceAcct) {
+            authCredentials = DCOSAuthCredentials.forServiceAccount(dcosUser, passToken);
+        } else {
+            authCredentials = DCOSAuthCredentials.forUserAccount(dcosUser, passToken);
+        }
+        marathonClient = DCOSClient.getInstance(marathonURL, authCredentials);
     }
 
     @Override
