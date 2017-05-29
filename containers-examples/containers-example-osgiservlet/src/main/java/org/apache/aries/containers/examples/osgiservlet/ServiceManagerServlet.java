@@ -109,7 +109,6 @@ public class ServiceManagerServlet extends HttpServlet {
         return ("<HEAD><TITLE>Service Deployments</TITLE>"
                 + "<STYLE>"
                 + "label.l1 {"
-//                + "  text-align: right;"
                 + "  width: 100px;"
                 + "  float: left;"
                 + "}"
