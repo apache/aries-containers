@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.aries.containers.ServiceManager;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
+import org.apache.aries.containers.ServiceManager;
 
 import mesosphere.dcos.client.DCOSClient;
 import mesosphere.dcos.client.model.DCOSAuthCredentials;
@@ -44,10 +44,23 @@ public class MarathonServiceManager implements ServiceManager {
 
     private final Marathon marathonClient;
 
+    /**
+     * Create the Marathon Service Manager.
+     *
+     * @param marathonURL The Marathon URL
+     */
     public MarathonServiceManager(String marathonURL) {
         marathonClient = MarathonClient.getInstance(marathonURL);
     }
 
+    /**
+     * Create the Marathon Service Manager for use with DC/OS.
+     *
+     * @param marathonURL The Marathon URL.
+     * @param dcosUser The DCOS user or service-user.
+     * @param passToken The password or token to use.
+     * @param serviceAcct {@code true} if this is a service account {@code false} if this is a plain user.
+     */
     public MarathonServiceManager(String marathonURL, String dcosUser, String passToken, boolean serviceAcct) {
         DCOSAuthCredentials authCredentials;
         if (serviceAcct) {
