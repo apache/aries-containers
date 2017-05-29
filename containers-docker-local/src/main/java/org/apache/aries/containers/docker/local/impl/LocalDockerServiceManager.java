@@ -37,9 +37,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.aries.containers.Container;
-import org.apache.aries.containers.ServiceManager;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
+import org.apache.aries.containers.ServiceManager;
 import org.apache.felix.utils.json.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +108,9 @@ public class LocalDockerServiceManager implements ServiceManager {
         command.add("-d");
         command.add("-l");
         command.add(SERVICE_NAME + "=" + config.getServiceName());
+
+        command.add("--name");
+        command.add(config.getServiceName());
 
         String ep = config.getEntryPoint();
         if (ep != null) {
