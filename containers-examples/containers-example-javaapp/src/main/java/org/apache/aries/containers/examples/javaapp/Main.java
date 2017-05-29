@@ -35,7 +35,7 @@ public class Main {
             ServiceManager sm = new LocalDockerServiceManager();
 
             // If you want to run with Marathon, use the following line
-            // ServiceManager cf = new MarathonServiceManager("http://192.168.99.100:8080/");
+            // ServiceManager sm = new MarathonServiceManager("http://192.168.99.100:8080/");
 
             System.out.println("Currently known services: " + sm.listServices());
 

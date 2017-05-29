@@ -109,9 +109,6 @@ public class LocalDockerServiceManager implements ServiceManager {
         command.add("-l");
         command.add(SERVICE_NAME + "=" + config.getServiceName());
 
-        command.add("--name");
-        command.add(config.getServiceName());
-
         String ep = config.getEntryPoint();
         if (ep != null) {
             command.add("--entrypoint");
