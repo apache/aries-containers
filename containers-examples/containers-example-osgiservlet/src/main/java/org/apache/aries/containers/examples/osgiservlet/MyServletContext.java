@@ -22,6 +22,12 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.http.context.ServletContextHelper;
 import org.osgi.service.http.whiteboard.HttpWhiteboardConstants;
 
+/**
+ * This Servlet Context Helper is provided to make it easy to deploy this example
+ * in environments where the default servlet context is already used by other
+ * components. It makes all servlets associated with this context available
+ * on the /containers path.
+ */
 @Component(service = ServletContextHelper.class, property = {
         HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_NAME + "=" + MyServletContext.NAME,
         HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_PATH + "=/containers" })
