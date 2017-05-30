@@ -60,13 +60,16 @@ public class LocalDockerServiceManager implements ServiceManager {
             : "localhost";
 
 
-    private volatile LocalDockerController docker;
+    private final LocalDockerController docker;
     private final ConcurrentMap<String, Service> services =
             new ConcurrentHashMap<>();
 
     public LocalDockerServiceManager() {
-        if (docker == null)
-            docker = new LocalDockerController();
+        this(new LocalDockerController());
+    }
+
+    LocalDockerServiceManager(LocalDockerController docker) {
+        this.docker = docker;
     }
 
     List<String> getDockerIDs(ServiceConfig config) {
