@@ -19,6 +19,7 @@
 package org.apache.aries.containers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -126,6 +127,72 @@ public class ServiceConfig {
      */
     public String getServiceName() {
         return serviceName;
+    }
+
+
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(commandLine);
+        result = prime * result + ((containerImage == null) ? 0 : containerImage.hashCode());
+        result = prime * result + ((containerPorts == null) ? 0 : containerPorts.hashCode());
+        result = prime * result + ((entryPoint == null) ? 0 : entryPoint.hashCode());
+        result = prime * result + ((envVars == null) ? 0 : envVars.hashCode());
+        long temp;
+        temp = Double.doubleToLongBits(requestedCPUunits);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + requestedInstances;
+        temp = Double.doubleToLongBits(requestedMemory);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + ((serviceName == null) ? 0 : serviceName.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ServiceConfig other = (ServiceConfig) obj;
+        if (!Arrays.equals(commandLine, other.commandLine))
+            return false;
+        if (containerImage == null) {
+            if (other.containerImage != null)
+                return false;
+        } else if (!containerImage.equals(other.containerImage))
+            return false;
+        if (containerPorts == null) {
+            if (other.containerPorts != null)
+                return false;
+        } else if (!containerPorts.equals(other.containerPorts))
+            return false;
+        if (entryPoint == null) {
+            if (other.entryPoint != null)
+                return false;
+        } else if (!entryPoint.equals(other.entryPoint))
+            return false;
+        if (envVars == null) {
+            if (other.envVars != null)
+                return false;
+        } else if (!envVars.equals(other.envVars))
+            return false;
+        if (Double.doubleToLongBits(requestedCPUunits) != Double.doubleToLongBits(other.requestedCPUunits))
+            return false;
+        if (requestedInstances != other.requestedInstances)
+            return false;
+        if (Double.doubleToLongBits(requestedMemory) != Double.doubleToLongBits(other.requestedMemory))
+            return false;
+        if (serviceName == null) {
+            if (other.serviceName != null)
+                return false;
+        } else if (!serviceName.equals(other.serviceName))
+            return false;
+        return true;
     }
 
     /**

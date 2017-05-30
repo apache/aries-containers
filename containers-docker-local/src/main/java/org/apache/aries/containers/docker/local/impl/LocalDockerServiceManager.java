@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public class LocalDockerServiceManager implements ServiceManager {
     static final Logger LOG = LoggerFactory.getLogger(LocalDockerServiceManager.class);
-    private static final String SERVICE_NAME = "org.apache.aries.containers.service.name";
+    static final String SERVICE_NAME_LABEL = "org.apache.aries.containers.service.name";
 
     private static final String DOCKER_MACHINE_VM_NAME = System.getenv("DOCKER_MACHINE_NAME");
     private static final boolean CHECK_DOCKER_MACHINE = Stream
@@ -55,13 +55,13 @@ public class LocalDockerServiceManager implements ServiceManager {
             .anyMatch(path -> Files.exists(path.resolve("docker-machine")));
 
     private static final boolean USE_DOCKER_MACHINE = (DOCKER_MACHINE_VM_NAME != null) && CHECK_DOCKER_MACHINE;
-    private static final String CONTAINER_HOST = USE_DOCKER_MACHINE
+    static final String CONTAINER_HOST = USE_DOCKER_MACHINE
             ? ProcessRunner.waitFor(ProcessRunner.run("docker-machine", "ip", DOCKER_MACHINE_VM_NAME))
             : "localhost";
 
 
     private final LocalDockerController docker;
-    private final ConcurrentMap<String, Service> services =
+    final ConcurrentMap<String, Service> services =
             new ConcurrentHashMap<>();
 
     public LocalDockerServiceManager() {
@@ -73,7 +73,7 @@ public class LocalDockerServiceManager implements ServiceManager {
     }
 
     List<String> getDockerIDs(ServiceConfig config) {
-        return docker.ps(SERVICE_NAME + "=" + config.getServiceName());
+        return docker.ps(SERVICE_NAME_LABEL + "=" + config.getServiceName());
     }
 
     @Override
@@ -110,7 +110,7 @@ public class LocalDockerServiceManager implements ServiceManager {
         List<String> command = new ArrayList<>();
         command.add("-d");
         command.add("-l");
-        command.add(SERVICE_NAME + "=" + config.getServiceName());
+        command.add(SERVICE_NAME_LABEL + "=" + config.getServiceName());
 
         String ep = config.getEntryPoint();
         if (ep != null) {
@@ -217,7 +217,7 @@ public class LocalDockerServiceManager implements ServiceManager {
     @SuppressWarnings("rawtypes")
     public Set<String> listServices() throws Exception {
         Set<String> res = new HashSet<>();
-        List<String> ids = docker.ps(SERVICE_NAME);
+        List<String> ids = docker.ps(SERVICE_NAME_LABEL);
 
         for (Service svc : services.values()) {
             res.add(svc.getConfiguration().getServiceName());
@@ -237,7 +237,7 @@ public class LocalDockerServiceManager implements ServiceManager {
             if (cd instanceof Map) {
                 Object ld = ((Map) cd).get("Labels");
                 if (ld instanceof Map) {
-                    Object serviceName = ((Map) ld).get(SERVICE_NAME);
+                    Object serviceName = ((Map) ld).get(SERVICE_NAME_LABEL);
                     if (serviceName instanceof String) {
                         res.add((String) serviceName);
                     }

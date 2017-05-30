@@ -47,7 +47,6 @@ class ServiceImpl implements Service {
     @Override
     public int getActualInstanceCount() {
         return factory.getDockerIDs(config).size();
-        // TODO test
     }
 
     @Override
@@ -93,5 +92,36 @@ class ServiceImpl implements Service {
             c.setService(this);
             containers.add(c);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((config == null) ? 0 : config.hashCode());
+        result = prime * result + ((containers == null) ? 0 : containers.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ServiceImpl other = (ServiceImpl) obj;
+        if (config == null) {
+            if (other.config != null)
+                return false;
+        } else if (!config.equals(other.config))
+            return false;
+        if (containers == null) {
+            if (other.containers != null)
+                return false;
+        } else if (!containers.equals(other.containers))
+            return false;
+        return true;
     }
 }

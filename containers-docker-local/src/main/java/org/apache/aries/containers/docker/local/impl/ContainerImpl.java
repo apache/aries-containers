@@ -111,7 +111,6 @@ class ContainerImpl implements Container {
 
     @Override
     public String toString() {
-        return "ContainerImpl [id=" + id + ", ip=" + ip + ", ports=" + ports +
-                ", service=" + service.getConfiguration().getServiceName() + "]";
+        return "ContainerImpl [id=" + id + ", ip=" + ip + ", ports=" + ports + "]";
     }
 }
