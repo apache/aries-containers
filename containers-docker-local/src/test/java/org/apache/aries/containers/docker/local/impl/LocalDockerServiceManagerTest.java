@@ -90,6 +90,27 @@ public class LocalDockerServiceManagerTest {
     }
 
     @Test
+    public void testGetServiceCreate() throws Exception {
+        List<String> expectedCmd = Arrays.asList(
+                "-d", "-l", "org.apache.aries.containers.service.name=mysvc",
+                "--cpus", "1.2", "-m", "40m", "acontainer");
+        LocalDockerController dc = Mockito.mock(LocalDockerController.class);
+        Mockito.when(dc.run(expectedCmd)).thenReturn(new DockerContainerInfo("fooctr", "1.2.3.4"));
+
+        LocalDockerServiceManager sm = new LocalDockerServiceManager(dc);
+
+        ServiceConfig cfg = ServiceConfig.builder("mysvc", "acontainer").
+                instances(3).cpu(1.2).memory(40).build();
+
+        Mockito.verify(dc, Mockito.times(0)).run(expectedCmd);
+        Service svc = sm.getService(cfg);
+        Mockito.verify(dc, Mockito.times(3)).run(expectedCmd);
+
+        assertEquals(3, svc.listContainers().size());
+        assertEquals(cfg, svc.getConfiguration());
+    }
+
+    @Test
     public void testListServices() throws Exception {
         LocalDockerController dc = Mockito.mock(LocalDockerController.class);
         Mockito.when(dc.ps(LocalDockerServiceManager.SERVICE_NAME_LABEL)).
