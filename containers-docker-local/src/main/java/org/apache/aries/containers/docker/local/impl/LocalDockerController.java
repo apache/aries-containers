@@ -28,7 +28,7 @@ class LocalDockerController {
         return kill(id, "KILL");
     }
 
-    private String kill(String id, String signal) throws Exception {
+    public String kill(String id, String signal) throws Exception {
         return runCommandExpectSingleID("docker", "kill", "-s", signal, id);
     }
 
@@ -91,7 +91,7 @@ class LocalDockerController {
         return res;
     }
 
-    private String runCommand(String... command) {
+    String runCommand(String... command) {
         return ProcessRunner.waitFor(ProcessRunner.run(command));
     }
 }

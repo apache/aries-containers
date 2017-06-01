@@ -76,6 +76,9 @@ public class ProcessRunner {
     }
 
     public static String waitFor(final Process process) {
+        if (process == null)
+            return null;
+
         try {
             process.waitFor();
             String res = new String(Streams.suck(process.getInputStream())).trim();
