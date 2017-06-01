@@ -44,7 +44,7 @@ public class LocalDockerControllerTest {
     public void testKill() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
             @Override
-            String runCommandExpectSingleID(String... command) throws IOException {
+            String runCommand(String... command) throws IOException {
                 assertArrayEquals(new String [] {"docker", "kill", "-s", "KILL", "123abc"}, command);
                 return "ok";
             }
@@ -56,7 +56,7 @@ public class LocalDockerControllerTest {
     public void testKillSignal() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
             @Override
-            String runCommandExpectSingleID(String... command) throws IOException {
+            String runCommand(String... command) throws IOException {
                 assertArrayEquals(new String [] {"docker", "kill", "-s", "TERM", "123abc"}, command);
                 return "ok";
             }
@@ -68,7 +68,7 @@ public class LocalDockerControllerTest {
     public void testRemove() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
             @Override
-            String runCommandExpectSingleID(String... command) throws IOException {
+            String runCommand(String... command) throws IOException {
                 assertArrayEquals(new String [] {"docker", "rm", "-f", "123abc"}, command);
                 return "ok";
             }
@@ -94,7 +94,6 @@ public class LocalDockerControllerTest {
     @Test
     public void testPS() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
-
             @Override
             String runCommand(String... command) {
                 assertArrayEquals(new String [] {
@@ -108,7 +107,6 @@ public class LocalDockerControllerTest {
     @Test
     public void testPS2() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
-
             @Override
             String runCommand(String... command) {
                 assertArrayEquals(new String [] {
@@ -117,5 +115,24 @@ public class LocalDockerControllerTest {
             }
         };
         assertEquals(Collections.emptyList(), ldc.ps("mylabel"));
+    }
+
+    @Test
+    public void testInspect() throws IOException {
+        LocalDockerController ldc = new LocalDockerController() {
+            @Override
+            String runCommand(String... command) {
+                assertArrayEquals(new String [] {
+                        "docker", "inspect", "a1", "b2"}, command);
+                return "[\"some_json\"]";
+            }
+        };
+        assertEquals("[\"some_json\"]", ldc.inspect(Arrays.asList("a1", "b2")));
+    }
+
+    @Test
+    public void testInspect2() throws IOException {
+        LocalDockerController ldc = new LocalDockerController();
+        assertEquals("[]", ldc.inspect(Collections.emptyList()));
     }
 }
