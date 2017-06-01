@@ -18,6 +18,7 @@
  */
 package org.apache.aries.containers.docker.local.impl;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -46,7 +47,13 @@ class ServiceImpl implements Service {
 
     @Override
     public int getActualInstanceCount() {
-        return factory.getDockerIDs(config).size();
+        try {
+            return factory.getDockerIDs(config).size();
+        } catch (IOException e) {
+            LocalDockerServiceManager.LOG.warn(
+                    "Cannot obtain docker instance count for service {}", config.getServiceName(), e);
+            return -1;
+        }
     }
 
     @Override
@@ -88,9 +95,13 @@ class ServiceImpl implements Service {
     @Override
     public void refresh() {
         containers.clear();
-        for (ContainerImpl c : factory.discoverContainers(config)) {
-            c.setService(this);
-            containers.add(c);
+        try {
+            for (ContainerImpl c : factory.discoverContainers(config)) {
+                c.setService(this);
+                containers.add(c);
+            }
+        } catch (IOException e) {
+            LocalDockerServiceManager.LOG.error("Problem refreshing service {}", config.getServiceName(), e);
         }
     }
 

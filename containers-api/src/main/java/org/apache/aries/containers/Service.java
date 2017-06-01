@@ -32,7 +32,7 @@ public interface Service {
     /**
      * Obtain the current instance count.
      *
-     * @return The instance count.
+     * @return The instance count. If the instance count cannot be obtained -1 is returned;
      */
     int getActualInstanceCount();
 

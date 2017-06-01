@@ -55,10 +55,18 @@ public class LocalDockerServiceManager implements ServiceManager {
             .anyMatch(path -> Files.exists(path.resolve("docker-machine")));
 
     private static final boolean USE_DOCKER_MACHINE = (DOCKER_MACHINE_VM_NAME != null) && CHECK_DOCKER_MACHINE;
-    static final String CONTAINER_HOST = USE_DOCKER_MACHINE
-            ? ProcessRunner.waitFor(ProcessRunner.run("docker-machine", "ip", DOCKER_MACHINE_VM_NAME))
-            : "localhost";
-
+    static final String CONTAINER_HOST;
+    static {
+        if (USE_DOCKER_MACHINE) {
+            try {
+                CONTAINER_HOST = ProcessRunner.waitFor(ProcessRunner.run("docker-machine", "ip", DOCKER_MACHINE_VM_NAME));
+            } catch (IOException e) {
+                throw new RuntimeException("Problem invoking docker-machine", e);
+            }
+        } else {
+            CONTAINER_HOST = "localhost";
+        }
+    }
 
     private final LocalDockerController docker;
     final ConcurrentMap<String, Service> services =
@@ -72,7 +80,7 @@ public class LocalDockerServiceManager implements ServiceManager {
         this.docker = docker;
     }
 
-    List<String> getDockerIDs(ServiceConfig config) {
+    List<String> getDockerIDs(ServiceConfig config) throws IOException {
         return docker.ps(SERVICE_NAME_LABEL + "=" + config.getServiceName());
     }
 
@@ -155,7 +163,7 @@ public class LocalDockerServiceManager implements ServiceManager {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    List<ContainerImpl> discoverContainers(ServiceConfig config) {
+    List<ContainerImpl> discoverContainers(ServiceConfig config) throws IOException {
         List<ContainerImpl> res = new ArrayList<>();
         List<String> ids = getDockerIDs(config);
         if (ids.size() == 0)

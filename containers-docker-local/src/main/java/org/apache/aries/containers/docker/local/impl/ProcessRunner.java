@@ -20,7 +20,6 @@ package org.apache.aries.containers.docker.local.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -57,35 +56,30 @@ public class ProcessRunner {
 
         LOG.info("Executing shell command: {} with environment {}", args, envVars);
 
-        try {
-            ProcessBuilder builder = new ProcessBuilder(args);
-            if ( dir != null ) {
-                builder.directory(dir);
-            }
-            builder.redirectErrorStream(true);
-            Map<String, String> environ = builder.environment();
-            environ.putAll(envVars);
-
-            Process process = builder.start();
-
-            return process;
-        } catch (IOException e) {
-            LOG.error("Problem executing command: " + Arrays.toString(args), e);
-            throw e;
+        ProcessBuilder builder = new ProcessBuilder(args);
+        if ( dir != null ) {
+            builder.directory(dir);
         }
+        builder.redirectErrorStream(true);
+        Map<String, String> environ = builder.environment();
+        environ.putAll(envVars);
+
+        Process process = builder.start();
+
+        return process;
     }
 
-    public static String waitFor(final Process process) {
+    public static String waitFor(final Process process) throws IOException {
         if (process == null)
             return null;
 
         try {
             process.waitFor();
-            String res = new String(Streams.suck(process.getInputStream())).trim();
-            LOG.debug("Result: {}", res);
-            return res;
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            // Ignore
         }
+        String res = new String(Streams.suck(process.getInputStream())).trim();
+        LOG.debug("Result: {}", res);
+        return res;
     }
 }

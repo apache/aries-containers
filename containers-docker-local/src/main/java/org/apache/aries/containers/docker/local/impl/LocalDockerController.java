@@ -19,6 +19,7 @@
 package org.apache.aries.containers.docker.local.impl;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ class LocalDockerController {
         return new DockerContainerInfo(id, LocalDockerServiceManager.getContainerHost());
     }
 
-    public List<String> ps(String labelFilter) {
+    public List<String> ps(String labelFilter) throws IOException {
         String res = runCommand("docker", "ps", "-q", "--no-trunc","-f", "label=" + labelFilter);
 
         String[] sa = res.trim().split("\\s+");
@@ -60,7 +61,7 @@ class LocalDockerController {
         return sl;
     }
 
-    public String inspect(List<String> ids) {
+    public String inspect(List<String> ids) throws IOException {
         if (ids.size() == 0)
             return "[]";
 
@@ -71,7 +72,7 @@ class LocalDockerController {
         return runCommand(cmd.toArray(new String [] {}));
     }
 
-    String runCommandExpectSingleID(String ... command) throws Exception {
+    String runCommandExpectSingleID(String ... command) throws IOException {
         String res = runCommand(command);
         if (res != null) {
             res = res.trim();
@@ -83,7 +84,7 @@ class LocalDockerController {
                 }
             }
             if (lastLine.indexOf(' ') != -1 ) {
-                 throw new Exception("Unable to execute docker command: " + res);
+                 throw new IOException("Unable to execute docker command: " + res);
             }
             res = lastLine;
         }
@@ -91,7 +92,7 @@ class LocalDockerController {
         return res;
     }
 
-    String runCommand(String... command) {
+    String runCommand(String... command) throws IOException {
         return ProcessRunner.waitFor(ProcessRunner.run(command));
     }
 }

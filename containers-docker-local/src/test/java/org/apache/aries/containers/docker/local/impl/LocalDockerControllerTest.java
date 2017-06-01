@@ -18,6 +18,10 @@
  */
 package org.apache.aries.containers.docker.local.impl;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,7 +44,7 @@ public class LocalDockerControllerTest {
     public void testKill() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
             @Override
-            String runCommandExpectSingleID(String... command) throws Exception {
+            String runCommandExpectSingleID(String... command) throws IOException {
                 assertArrayEquals(new String [] {"docker", "kill", "-s", "KILL", "123abc"}, command);
                 return "ok";
             }
@@ -52,7 +56,7 @@ public class LocalDockerControllerTest {
     public void testKillSignal() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
             @Override
-            String runCommandExpectSingleID(String... command) throws Exception {
+            String runCommandExpectSingleID(String... command) throws IOException {
                 assertArrayEquals(new String [] {"docker", "kill", "-s", "TERM", "123abc"}, command);
                 return "ok";
             }
@@ -64,11 +68,54 @@ public class LocalDockerControllerTest {
     public void testRemove() throws Exception {
         LocalDockerController ldc = new LocalDockerController() {
             @Override
-            String runCommandExpectSingleID(String... command) throws Exception {
+            String runCommandExpectSingleID(String... command) throws IOException {
                 assertArrayEquals(new String [] {"docker", "rm", "-f", "123abc"}, command);
                 return "ok";
             }
         };
         assertEquals("ok", ldc.remove("123abc"));
+    }
+
+    @Test
+    public void testRun() throws Exception {
+        LocalDockerController ldc = new LocalDockerController() {
+            @Override
+            String runCommand(String... command) throws IOException {
+                assertArrayEquals(new String [] {
+                        "docker", "run", "-it", "-p", "8080:8080", "myimg"}, command);
+                return "ok";
+            }
+        };
+        DockerContainerInfo info = ldc.run(Arrays.asList("-it", "-p", "8080:8080", "myimg"));
+        assertEquals("ok", info.getID());
+        assertEquals(LocalDockerServiceManager.getContainerHost(), info.getIP());
+    }
+
+    @Test
+    public void testPS() throws Exception {
+        LocalDockerController ldc = new LocalDockerController() {
+
+            @Override
+            String runCommand(String... command) {
+                assertArrayEquals(new String [] {
+                        "docker", "ps", "-q", "--no-trunc","-f", "label=mylabel"}, command);
+                return "\n a\nb\nc \n\n";
+            }
+        };
+        assertEquals(Arrays.asList("a", "b", "c"), ldc.ps("mylabel"));
+    }
+
+    @Test
+    public void testPS2() throws Exception {
+        LocalDockerController ldc = new LocalDockerController() {
+
+            @Override
+            String runCommand(String... command) {
+                assertArrayEquals(new String [] {
+                        "docker", "ps", "-q", "--no-trunc","-f", "label=mylabel"}, command);
+                return "\n";
+            }
+        };
+        assertEquals(Collections.emptyList(), ldc.ps("mylabel"));
     }
 }
