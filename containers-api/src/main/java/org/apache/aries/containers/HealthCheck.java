@@ -48,11 +48,8 @@ public class HealthCheck {
         HTTPS,
 
         /**
-         * Health check defined as a TCP port connection. If opening a TCP port to
-         * succeeds the health check passes. The port to connect to is specified
-         * via {@link HealthCheck#getParameters()}. An port index is specified via
-         * {@code $PORT0}, {@code $PORT1} etc. An actual port is specified as a number,
-         * e.g. {@code 8080}.
+         * Health check defined as a TCP port connection. If opening a TCP port
+         * succeeds the health check passes.
          */
         TCP,
 
@@ -76,15 +73,19 @@ public class HealthCheck {
     private final int interval;
     private final int timeout;
     private final int maxFailures;
+    private final Integer port;
+    private final Integer portIndex;
 
     private HealthCheck(String parameters, Type type, int gracePeriod, int interval,
-            int timeout, int maxFailures) {
+            int timeout, int maxFailures, Integer port, Integer portIndex) {
         this.parameters = parameters;
         this.type = type;
         this.gracePeriod = gracePeriod;
         this.interval = interval;
         this.timeout = timeout;
         this.maxFailures = maxFailures;
+        this.port = port;
+        this.portIndex = portIndex;
     }
 
     /**
@@ -124,6 +125,26 @@ public class HealthCheck {
     }
 
     /**
+     * The actual port number to use for the health check. This is the external port of the container
+     * and should only be used if the external port of the container is used and does not change.
+     * If the external port is not predefined, use {@link #getPortIndex()} instead.
+     * @return The port or {@code null} if the port is not specified.
+     */
+    public Integer getPort() {
+        return port;
+    }
+
+    /**
+     * The zero-based port index to use for health checks. This is the external port of the container,
+     * but the actual port number is assigned dynamically when the container is started.
+     * As the index is zero-based, the first port has index {@code 0}.
+     * @return The port index or {@code null} if no port index was specified.
+     */
+    public Integer getPortIndex() {
+        return portIndex;
+    }
+
+    /**
      * @return The number of seconds after which a health check is considered a failure, regardless
      * of the obtained result.
      */
@@ -135,10 +156,12 @@ public class HealthCheck {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
         result = prime * result + gracePeriod;
         result = prime * result + interval;
         result = prime * result + maxFailures;
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        result = prime * result + ((port == null) ? 0 : port.hashCode());
+        result = prime * result + ((portIndex == null) ? 0 : portIndex.hashCode());
         result = prime * result + timeout;
         result = prime * result + ((type == null) ? 0 : type.hashCode());
         return result;
@@ -153,23 +176,30 @@ public class HealthCheck {
         if (getClass() != obj.getClass())
             return false;
         HealthCheck other = (HealthCheck) obj;
-        if (parameters == null) {
-            if (other.parameters != null)
-                return false;
-        } else if (!parameters.equals(other.parameters))
-            return false;
         if (gracePeriod != other.gracePeriod)
             return false;
         if (interval != other.interval)
             return false;
         if (maxFailures != other.maxFailures)
             return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        if (port == null) {
+            if (other.port != null)
+                return false;
+        } else if (!port.equals(other.port))
+            return false;
+        if (portIndex == null) {
+            if (other.portIndex != null)
+                return false;
+        } else if (!portIndex.equals(other.portIndex))
+            return false;
         if (timeout != other.timeout)
             return false;
-        if (type == null) {
-            if (other.type != null)
-                return false;
-        } else if (!type.equals(other.type))
+        if (type != other.type)
             return false;
         return true;
     }
@@ -191,8 +221,10 @@ public class HealthCheck {
         private final Type type;
         private int gracePeriod = 300;
         private int interval = 60;
-        private int timeout = 20;
         private int maxFailures = 3;
+        private Integer port;
+        private Integer portIndex;
+        private int timeout = 20;
 
         Builder(Type type) {
             this.type = type;
@@ -239,6 +271,26 @@ public class HealthCheck {
         }
 
         /**
+         * Specify the port for health checks.
+         * @param port The actual port number to use for the health check.
+         * @return the current builder for further building.
+         */
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * Specify the port index for health checks.
+         * @param idx The port index to use for the health check.
+         * @return the current builder for further building.
+         */
+        public Builder portIndex(int idx) {
+            this.portIndex = idx;
+            return this;
+        }
+
+        /**
          * Specify the timeout.
          * @param t The timout in seconds.
          * @return the current builder for further building.
@@ -249,7 +301,8 @@ public class HealthCheck {
         }
 
         public HealthCheck build() {
-            return new HealthCheck(parameters, type, gracePeriod, interval, timeout, maxFailures);
+            return new HealthCheck(parameters, type, gracePeriod, interval, timeout, maxFailures,
+                    port, portIndex);
         }
     }
 }

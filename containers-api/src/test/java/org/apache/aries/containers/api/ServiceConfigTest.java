@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class ServiceConfigTest {
     @Test
@@ -78,11 +79,29 @@ public class ServiceConfigTest {
     @Test
     public void testHealthCheck() {
         HealthCheck hc = HealthCheck.builder(HealthCheck.Type.HTTP).
-                parameters("/index.html").build();
+                parameters("/index.html").portIndex(0).build();
         ServiceConfig sc = ServiceConfig.builder("mysvc", "animg").
                 healthCheck(hc).build();
 
         assertEquals(1, sc.getHealthChecks().size());
         assertEquals(hc, sc.getHealthChecks().get(0));
+    }
+
+    @Test
+    public void testHealthCheck2() {
+        HealthCheck hc = HealthCheck.builder(HealthCheck.Type.COMMAND).build();
+        assertEquals(HealthCheck.Type.COMMAND, hc.getType());
+        assertNull(hc.getPort());
+        assertNull(hc.getPortIndex());
+
+        HealthCheck hc2 = HealthCheck.builder(HealthCheck.Type.TCP).port(1234).build();
+        assertEquals(HealthCheck.Type.TCP, hc2.getType());
+        assertEquals(1234, (int) hc2.getPort());
+        assertNull(hc2.getPortIndex());
+
+        HealthCheck hc3 = HealthCheck.builder(HealthCheck.Type.HTTP).portIndex(0).build();
+        assertEquals(HealthCheck.Type.HTTP, hc3.getType());
+        assertNull(hc3.getPort());
+        assertEquals(new Integer(0), hc3.getPortIndex());
     }
 }
