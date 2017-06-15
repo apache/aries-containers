@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.aries.containers.Container;
+import org.apache.aries.containers.HealthCheck;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 import org.apache.aries.containers.ServiceManager;
@@ -148,6 +149,24 @@ public class LocalDockerServiceManager implements ServiceManager {
 
         command.add(config.getContainerImage());
         command.addAll(Arrays.asList(config.getCommandLine()));
+
+        if (config.getHealthChecks().size() > 0) {
+            // Only one healthcheck supported
+            HealthCheck hc = config.getHealthChecks().get(0);
+            if (hc.getType() != HealthCheck.Type.COMMAND) {
+                throw new UnsupportedOperationException("Health check of type " + hc.getType() +
+                        " not supported. Docker only supports health checks of type COMMAND");
+            }
+
+            command.add("--health-cmd");
+            command.add(hc.getParameters());
+            command.add("--health-interval");
+            command.add(hc.getInterval() + "s");
+            command.add("--health-retries");
+            command.add("" + hc.getMaxFailures());
+            command.add("--health-timeout");
+            command.add(hc.getTimeout() + "s");
+        }
 
         DockerContainerInfo info = docker.run(command);
 
