@@ -30,6 +30,8 @@ import org.apache.aries.containers.Container;
 import org.apache.aries.containers.ServiceConfig;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -37,6 +39,7 @@ import static org.junit.Assert.assertSame;
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.GetAppResponse;
+import mesosphere.marathon.client.model.v2.Result;
 import mesosphere.marathon.client.model.v2.Task;
 
 public class ServiceImplTest {
@@ -127,6 +130,34 @@ public class ServiceImplTest {
             }
         }
         assertEquals(new HashSet<>(Arrays.asList("task1", "task2")), foundTasks);
+    }
+
+    @Test
+    public void testSetInstanceCount() throws Exception {
+        List<App> updatedApps = new ArrayList<>();
+
+        Marathon mc = Mockito.mock(Marathon.class);
+        Mockito.when(mc.updateApp(Mockito.eq("mid1"), Mockito.isA(App.class), Mockito.eq(true))).
+            then(new Answer<Result>() {
+                @Override
+                public Result answer(InvocationOnMock invocation) throws Throwable {
+                    updatedApps.add((App) invocation.getArguments()[1]);
+                    return Mockito.mock(Result.class);
+                }
+            });
+
+        ServiceConfig cfg = ServiceConfig.builder("svc1", "a/b/c:d").build();
+
+        App app = new App();
+        app.setId("mid1");
+        ServiceImpl svc = new ServiceImpl(mc, app, cfg);
+
+        assertEquals("Precondition", 0, updatedApps.size());
+        svc.setInstanceCount(5);
+        assertEquals(1, updatedApps.size());
+
+        App updated = updatedApps.iterator().next();
+        assertEquals(5, (int) updated.getInstances());
     }
 
     private GetAppResponse getAppResponse(App a) {

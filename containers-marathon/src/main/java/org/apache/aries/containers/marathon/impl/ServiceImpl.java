@@ -72,7 +72,7 @@ class ServiceImpl implements Service {
     @Override
     public void setInstanceCount(int count) {
         App updatedApp = new App();
-        updatedApp.setInstances(count);;
+        updatedApp.setInstances(count);
         marathonClient.updateApp(marathonAppID, updatedApp, true);
     }
 
