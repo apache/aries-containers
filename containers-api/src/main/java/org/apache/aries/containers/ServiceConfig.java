@@ -43,20 +43,21 @@ public class ServiceConfig {
     private final List<Integer> containerPorts;
     private final String entryPoint;
     private final Map<String, String> envVars;
-//    private final List<HealthCheck> healthChecks; TODO add these!
+    private final List<HealthCheck> healthChecks;
     private final double requestedCPUunits;
     private final int requestedInstances;
     private final double requestedMemory; // in MiB
     private final String serviceName;
 
     private ServiceConfig(String[] commandLine, String containerImage, List<Integer> containerPorts, String entryPoint,
-            Map<String, String> envVars, double requestedCPUunits, int requestedInstances, double requestedMemory,
-            String serviceName) {
+            Map<String, String> envVars, List<HealthCheck> healtChecks, double requestedCPUunits, int requestedInstances,
+            double requestedMemory, String serviceName) {
         this.commandLine = commandLine;
         this.containerImage = containerImage;
         this.containerPorts = Collections.unmodifiableList(containerPorts);
         this.entryPoint = entryPoint;
         this.envVars = Collections.unmodifiableMap(envVars);
+        this.healthChecks = Collections.unmodifiableList(healtChecks);
         this.requestedCPUunits = requestedCPUunits;
         this.requestedInstances = requestedInstances;
         this.requestedMemory = requestedMemory;
@@ -90,6 +91,13 @@ public class ServiceConfig {
      */
     public String getEntryPoint() {
         return entryPoint;
+    }
+
+    /**
+     * @return The health checks to be configured for this service.
+     */
+    public List<HealthCheck> getHealthChecks() {
+        return healthChecks;
     }
 
     /**
@@ -129,8 +137,6 @@ public class ServiceConfig {
         return serviceName;
     }
 
-
-
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -140,6 +146,7 @@ public class ServiceConfig {
         result = prime * result + ((containerPorts == null) ? 0 : containerPorts.hashCode());
         result = prime * result + ((entryPoint == null) ? 0 : entryPoint.hashCode());
         result = prime * result + ((envVars == null) ? 0 : envVars.hashCode());
+        result = prime * result + ((healthChecks == null) ? 0 : healthChecks.hashCode());
         long temp;
         temp = Double.doubleToLongBits(requestedCPUunits);
         result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -181,6 +188,11 @@ public class ServiceConfig {
                 return false;
         } else if (!envVars.equals(other.envVars))
             return false;
+        if (healthChecks == null) {
+            if (other.healthChecks != null)
+                return false;
+        } else if (!healthChecks.equals(other.healthChecks))
+            return false;
         if (Double.doubleToLongBits(requestedCPUunits) != Double.doubleToLongBits(other.requestedCPUunits))
             return false;
         if (requestedInstances != other.requestedInstances)
@@ -210,15 +222,16 @@ public class ServiceConfig {
     /** A builder for service configurations */
     @ProviderType
     public static class Builder {
-        private String containerImage;
+        private final String containerImage;
         private String[] commandLine = new String [] {};
         private Map<String, String> envMap = new HashMap<>();
         private String entryPoint;
+        private List<HealthCheck> healthChecks = new ArrayList<>();
         private double requestedCpuUnits = 0.5;
         private int requestedInstances = 1;
         private double requestedMemory = 64;
         private List<Integer> ports = new ArrayList<>();
-        private String serviceName;
+        private final String serviceName;
 
         Builder(String serviceName, String containerImage) {
             this.serviceName = serviceName;
@@ -299,6 +312,18 @@ public class ServiceConfig {
         }
 
         /**
+         * Specify a health check to use for the service. This method
+         * may be called multiple times to specify multiple health
+         * checks.
+         * @param hc The health to add.
+         * @return the current builder for further building.
+         */
+        public Builder healthCheck(HealthCheck hc) {
+            this.healthChecks.add(hc);
+            return this;
+        }
+
+        /**
          * Specify the required amount of memory in million bytes (MiB).
          *
          * @param requestedMemory The amount of memory required of a container.
@@ -328,7 +353,7 @@ public class ServiceConfig {
          */
         public ServiceConfig build() {
             return new ServiceConfig(commandLine, containerImage, ports, entryPoint,
-                    envMap, requestedCpuUnits, requestedInstances, requestedMemory,
+                    envMap, healthChecks, requestedCpuUnits, requestedInstances, requestedMemory,
                     serviceName);
         }
     }

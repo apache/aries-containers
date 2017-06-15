@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.aries.containers.HealthCheck;
 import org.apache.aries.containers.ServiceConfig;
 import org.junit.Test;
 
@@ -74,4 +75,14 @@ public class ServiceConfigTest {
         assertEquals(env, sc.getEnvVars());
     }
 
+    @Test
+    public void testHealthCheck() {
+        HealthCheck hc = HealthCheck.builder(HealthCheck.Type.HTTP).
+                parameters("/index.html").build();
+        ServiceConfig sc = ServiceConfig.builder("mysvc", "animg").
+                healthCheck(hc).build();
+
+        assertEquals(1, sc.getHealthChecks().size());
+        assertEquals(hc, sc.getHealthChecks().get(0));
+    }
 }
