@@ -20,17 +20,23 @@ package org.apache.aries.containers.examples.javaapp;
 
 import java.util.Scanner;
 
+import org.apache.aries.containers.HealthCheck;
+import org.apache.aries.containers.HealthCheck.Type;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 import org.apache.aries.containers.ServiceManager;
 import org.apache.aries.containers.docker.local.impl.LocalDockerServiceManager;
 
-
 public class Main {
     public static void main(String [] args) {
         try {
             ServiceConfig sc = ServiceConfig.builder("mytesthttpd", "httpd").
-                cpu(0.2).memory(32).port(80).build();
+                cpu(0.2).
+                memory(32).
+                port(80).
+                healthCheck(HealthCheck.builder(Type.HTTP).parameters("/index.html").portIndex(0).
+                        build()).
+                build();
 
             ServiceManager sm = new LocalDockerServiceManager();
 
