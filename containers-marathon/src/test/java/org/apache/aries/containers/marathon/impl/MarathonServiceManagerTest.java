@@ -22,8 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.aries.containers.Service;
@@ -103,6 +105,39 @@ public class MarathonServiceManagerTest {
     }
 
     @Test
+    public void testGetService2() throws Exception {
+        GetAppsResponse nar = Mockito.mock(GetAppsResponse.class);
+
+        List<App> appsCreated = new ArrayList<>();
+        Marathon mc = Mockito.mock(Marathon.class);
+        Mockito.when(mc.getApps(Collections.singletonMap(
+                "label", MarathonServiceManager.SERVICE_NAME + "==my-other-service"))).thenReturn(nar);
+        Mockito.when(mc.createApp(Mockito.isA(App.class))).then(new Answer<App>() {
+            @Override
+            public App answer(InvocationOnMock invocation) throws Throwable {
+                App a = (App) invocation.getArguments()[0];
+                appsCreated.add(a);
+                return a;
+            }
+        });
+
+        MarathonServiceManager msm = new MarathonServiceManager(mc);
+
+        ServiceConfig cfg = ServiceConfig.builder("my-other-service", "animage").
+                entryPoint("/bin/sh").
+                commandLine("-c", "ls -la").
+                build();
+
+        assertEquals("Precondition", 0, appsCreated.size());
+        Service svc = msm.getService(cfg);
+        assertEquals(1, appsCreated.size());
+
+        App app = appsCreated.iterator().next();
+        assertEquals("/bin/sh -c 'ls -la'", app.getCmd());
+        assertSame(cfg, svc.getConfiguration());
+    }
+
+    @Test
     public void testGetExistingService() throws Exception {
         App app = new App();
         app.setLabels(Collections.singletonMap(MarathonServiceManager.SERVICE_NAME, "asvc"));
@@ -119,5 +154,29 @@ public class MarathonServiceManagerTest {
         ServiceConfig cfg = ServiceConfig.builder("asvc", "img.1").build();
         Service svc = msm.getService(cfg);
         assertSame(cfg, svc.getConfiguration());
+    }
+
+    @Test
+    public void testListService() throws Exception {
+        App app1 = new App();
+        app1.setLabels(Collections.singletonMap(MarathonServiceManager.SERVICE_NAME, "svc1"));
+
+        Map<String, String> labels = new HashMap<>();
+        labels.put("somelabel", "somevalue");
+        labels.put(MarathonServiceManager.SERVICE_NAME, "svc2");
+        App app2 = new App();
+        app2.setLabels(labels);
+
+        GetAppsResponse sar = Mockito.mock(GetAppsResponse.class);
+        Mockito.when(sar.getApps()).thenReturn(Arrays.asList(app1, app2));
+
+        Marathon mc = Mockito.mock(Marathon.class);
+
+        MarathonServiceManager msm = new MarathonServiceManager(mc);
+        Mockito.when(mc.getApps(Collections.singletonMap(
+                "label", MarathonServiceManager.SERVICE_NAME))).thenReturn(sar);
+
+        Set<String> names = msm.listServices();
+        assertEquals(new HashSet<>(Arrays.asList("svc1", "svc2")), names);
     }
 }
