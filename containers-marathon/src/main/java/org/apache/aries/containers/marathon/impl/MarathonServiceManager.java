@@ -40,9 +40,13 @@ import mesosphere.marathon.client.model.v2.GetAppsResponse;
 import mesosphere.marathon.client.model.v2.Port;
 
 public class MarathonServiceManager implements ServiceManager {
-    private static final String SERVICE_NAME = "org.apache.aries.containers.service.name";
+    static final String SERVICE_NAME = "org.apache.aries.containers.service.name";
 
     private final Marathon marathonClient;
+
+    MarathonServiceManager(Marathon mc) {
+        marathonClient = mc;
+    }
 
     /**
      * Create the Marathon Service Manager.
@@ -50,7 +54,7 @@ public class MarathonServiceManager implements ServiceManager {
      * @param marathonURL The Marathon URL
      */
     public MarathonServiceManager(String marathonURL) {
-        marathonClient = MarathonClient.getInstance(marathonURL);
+        this(MarathonClient.getInstance(marathonURL));
     }
 
     /**
