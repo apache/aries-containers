@@ -18,6 +18,15 @@
  */
 package org.apache.aries.containers.marathon.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.aries.containers.Container;
 import org.apache.aries.containers.ServiceConfig;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -28,6 +37,7 @@ import static org.junit.Assert.assertSame;
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.GetAppResponse;
+import mesosphere.marathon.client.model.v2.Task;
 
 public class ServiceImplTest {
     @Test
@@ -61,6 +71,62 @@ public class ServiceImplTest {
         ServiceImpl svc = new ServiceImpl(mc, app, cfg);
 
         assertEquals(3, svc.getActualInstanceCount());
+    }
+
+    @Test
+    public void testListContainers() {
+        Marathon mc = Mockito.mock(Marathon.class);
+
+        List<Task> tasks = new ArrayList<>();
+        Task t1 = new Task();
+        t1.setId("task1");
+        t1.setHost("1.2.3.4");
+        t1.setPorts(Arrays.asList(1180, 1190));
+        tasks.add(t1);
+        Task t2 = new Task();
+        t2.setId("task2");
+        t2.setHost("4.3.2.1");
+        t2.setPorts(Arrays.asList(8080, 9090));
+        tasks.add(t2);
+
+        App a = new App();
+        a.setTasks(tasks);
+        GetAppResponse gar = getAppResponse(a);
+        Mockito.when(mc.getApp("mid1")).thenReturn(gar);
+
+        ServiceConfig cfg = ServiceConfig.builder("svc1", "a/b/c:d").
+                port(80).port(90).
+                build();
+        App app = new App();
+        app.setId("mid1");
+        ServiceImpl svc = new ServiceImpl(mc, app, cfg);
+
+        List<Container> containers = svc.listContainers();
+        assertEquals(2, containers.size());
+
+        Set<String> foundTasks = new HashSet<>();
+        for (Container c : containers) {
+            foundTasks.add(c.getID());
+            assertSame(svc, c.getService());
+
+            switch (c.getID()) {
+            case "task1":
+                assertEquals("1.2.3.4", c.getHostName());
+                Map<Integer,Integer> ports1 = new HashMap<>();
+                ports1.put(80, 1180);
+                ports1.put(90, 1190);
+                assertEquals(ports1, c.getExposedPorts());
+                break;
+            case "task2":
+                assertEquals("4.3.2.1", c.getHostName());
+                Map<Integer,Integer> ports2 = new HashMap<>();
+                ports2.put(80, 8080);
+                ports2.put(90, 9090);
+                assertEquals(ports2, c.getExposedPorts());
+                break;
+            }
+        }
+        assertEquals(new HashSet<>(Arrays.asList("task1", "task2")), foundTasks);
     }
 
     private GetAppResponse getAppResponse(App a) {

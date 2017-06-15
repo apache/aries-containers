@@ -22,10 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.aries.containers.Service;
@@ -161,11 +159,9 @@ public class MarathonServiceManagerTest {
         App app1 = new App();
         app1.setLabels(Collections.singletonMap(MarathonServiceManager.SERVICE_NAME, "svc1"));
 
-        Map<String, String> labels = new HashMap<>();
-        labels.put("somelabel", "somevalue");
-        labels.put(MarathonServiceManager.SERVICE_NAME, "svc2");
         App app2 = new App();
-        app2.setLabels(labels);
+        app2.addLabel("somelabel", "somevalue");
+        app2.addLabel(MarathonServiceManager.SERVICE_NAME, "svc2");
 
         GetAppsResponse sar = Mockito.mock(GetAppsResponse.class);
         Mockito.when(sar.getApps()).thenReturn(Arrays.asList(app1, app2));
