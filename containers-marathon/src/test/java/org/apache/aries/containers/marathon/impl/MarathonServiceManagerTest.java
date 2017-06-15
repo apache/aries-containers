@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.aries.containers.HealthCheck;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 import org.junit.Test;
@@ -103,7 +104,7 @@ public class MarathonServiceManagerTest {
     }
 
     @Test
-    public void testGetService2() throws Exception {
+    public void testGetServiceWithHealthCheck() throws Exception {
         GetAppsResponse nar = Mockito.mock(GetAppsResponse.class);
 
         List<App> appsCreated = new ArrayList<>();
@@ -121,9 +122,18 @@ public class MarathonServiceManagerTest {
 
         MarathonServiceManager msm = new MarathonServiceManager(mc);
 
+        HealthCheck hc1 = HealthCheck.builder(HealthCheck.Type.HTTP).parameters("/").portIndex(0).
+                build();
+        HealthCheck hc2 = HealthCheck.builder(HealthCheck.Type.TCP).port(8080).
+                build();
+        HealthCheck hc3 = HealthCheck.builder(HealthCheck.Type.COMMAND).parameters("ping test.com").
+                build();
         ServiceConfig cfg = ServiceConfig.builder("my-other-service", "animage").
                 entryPoint("/bin/sh").
                 commandLine("-c", "ls -la").
+                healthCheck(hc1).
+                healthCheck(hc2).
+                healthCheck(hc3).
                 build();
 
         assertEquals("Precondition", 0, appsCreated.size());
@@ -132,6 +142,30 @@ public class MarathonServiceManagerTest {
 
         App app = appsCreated.iterator().next();
         assertEquals("/bin/sh -c 'ls -la'", app.getCmd());
+
+        List<mesosphere.marathon.client.model.v2.HealthCheck> checks = app.getHealthChecks();
+        assertEquals(3, checks.size());
+
+        Set<String> foundTypes = new HashSet<>();
+        for (mesosphere.marathon.client.model.v2.HealthCheck check : checks) {
+            foundTypes.add(check.getProtocol());
+
+            switch (check.getProtocol()) {
+            case "HTTP":
+                assertEquals("/", check.getPath());
+                assertEquals((Integer) 0, check.getPortIndex());
+                assertNull(check.getPort());
+                break;
+            case "TCP":
+                assertEquals(8080, (int) check.getPort());
+                assertNull(check.getPortIndex());
+                break;
+            case "COMMAND":
+                assertEquals("ping test.com", check.getCommand().getValue());
+                break;
+            }
+        }
+
         assertSame(cfg, svc.getConfiguration());
     }
 

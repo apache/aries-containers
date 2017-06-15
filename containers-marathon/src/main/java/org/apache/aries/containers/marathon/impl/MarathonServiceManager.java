@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.naming.OperationNotSupportedException;
+
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 import org.apache.aries.containers.ServiceManager;
@@ -34,9 +36,11 @@ import mesosphere.dcos.client.model.DCOSAuthCredentials;
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.MarathonClient;
 import mesosphere.marathon.client.model.v2.App;
+import mesosphere.marathon.client.model.v2.Command;
 import mesosphere.marathon.client.model.v2.Container;
 import mesosphere.marathon.client.model.v2.Docker;
 import mesosphere.marathon.client.model.v2.GetAppsResponse;
+import mesosphere.marathon.client.model.v2.HealthCheck;
 import mesosphere.marathon.client.model.v2.Port;
 
 public class MarathonServiceManager implements ServiceManager {
@@ -89,6 +93,7 @@ public class MarathonServiceManager implements ServiceManager {
         app.setMem(config.getRequestedMemory());
         app.setInstances(config.getRequestedInstances());
         app.setEnv(Collections.unmodifiableMap(config.getEnvVars()));
+        app.addLabel(SERVICE_NAME, config.getServiceName());
 
         StringBuilder cmd = new StringBuilder();
         if (config.getEntryPoint() != null) {
@@ -112,7 +117,7 @@ public class MarathonServiceManager implements ServiceManager {
 
         Docker docker = new Docker();
         docker.setImage(config.getContainerImage());
-        docker.setNetwork("BRIDGE"); // TODO is this correct?
+        docker.setNetwork("BRIDGE");
         List<Port> ports = new ArrayList<>();
         for (int p : config.getContainerPorts()) {
             Port port = new Port();
@@ -124,12 +129,38 @@ public class MarathonServiceManager implements ServiceManager {
         Container container = new Container();
         container.setType("DOCKER");
         container.setDocker(docker);
-
         app.setContainer(container);
-        app.addLabel(SERVICE_NAME, config.getServiceName());
+
+        List<HealthCheck> healthChecks = new ArrayList<>();
+        for (org.apache.aries.containers.HealthCheck hc : config.getHealthChecks()) {
+            HealthCheck healthCheck = new HealthCheck();
+            healthCheck.setProtocol(hc.getType().toString());
+            healthCheck.setGracePeriodSeconds(hc.getGracePeriod());
+            healthCheck.setIntervalSeconds(hc.getInterval());
+            healthCheck.setMaxConsecutiveFailures(hc.getMaxFailures());
+            healthCheck.setTimeoutSeconds(hc.getTimeout());
+
+            switch (hc.getType()) {
+            case HTTP:
+                healthCheck.setPath(hc.getParameters());
+                // Fallthrough as the other params are the same as TCP
+            case TCP:
+                healthCheck.setPort(hc.getPort());
+                healthCheck.setPortIndex(hc.getPortIndex());
+                break;
+            case COMMAND:
+                Command command = new Command();
+                command.setValue(hc.getParameters());
+                healthCheck.setCommand(command);
+                break;
+            default:
+                throw new OperationNotSupportedException(hc.getType() + " health checks are not yet supported");
+            }
+            healthChecks.add(healthCheck);
+        }
+        app.setHealthChecks(healthChecks);
 
         App res = marathonClient.createApp(app);
-
         return createServiceFromApp(res, config);
     }
 
