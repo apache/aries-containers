@@ -34,7 +34,7 @@ class ServiceImpl implements Service {
     private final String marathonAppID;
     private final Marathon marathonClient;
 
-    public ServiceImpl(Marathon marathon, App app, ServiceConfig cfg) {
+    ServiceImpl(Marathon marathon, App app, ServiceConfig cfg) {
         marathonClient = marathon;
         marathonAppID = app.getId();
         configuration = cfg;
