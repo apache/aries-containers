@@ -164,6 +164,9 @@ public class LocalDockerServiceManager implements ServiceManager {
             command.add(hc.getInterval() + "s");
             command.add("--health-retries");
             command.add("" + hc.getMaxFailures());
+// TODO Add this when docker supports it in a release.
+//            command.add("--health-start-period");
+//            command.add(hc.getGracePeriod() + "s");
             command.add("--health-timeout");
             command.add(hc.getTimeout() + "s");
         }

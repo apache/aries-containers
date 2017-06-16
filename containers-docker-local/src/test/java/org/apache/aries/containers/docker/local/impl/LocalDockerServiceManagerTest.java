@@ -28,10 +28,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.aries.containers.Container;
+import org.apache.aries.containers.HealthCheck;
 import org.apache.aries.containers.Service;
 import org.apache.aries.containers.ServiceConfig;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -124,5 +127,43 @@ public class LocalDockerServiceManagerTest {
                 new ContainerImpl("d4", "localhost", Collections.emptyMap()))));
 
         assertEquals(new HashSet<>(Arrays.asList("svc1", "svc2", "svc3")), sm.listServices());
+    }
+
+    @Test
+    public void testCreateDockerContainerWithHealthCheck() throws Exception {
+        Map<String, String> expectedArgs = new HashMap<>();
+        expectedArgs.put("--health-cmd", "curl --fail http://localhost:8080 || exit 1");
+        expectedArgs.put("--health-interval", "71s");
+        expectedArgs.put("--health-retries", "11");
+        expectedArgs.put("--health-timeout", "90s");
+        LocalDockerController dc = Mockito.mock(LocalDockerController.class);
+        Mockito.when(dc.run(Mockito.anyListOf(String.class))).then(new Answer<DockerContainerInfo>() {
+            @Override
+            public DockerContainerInfo answer(InvocationOnMock invocation) throws Throwable {
+                @SuppressWarnings("unchecked")
+                List<String> sl = (List<String>) invocation.getArguments()[0];
+
+                Map<String,String> ea = new HashMap<>(expectedArgs);
+                for (int i=0; i < sl.size() - 1; i++) {
+                    ea.remove(sl.get(i), sl.get(i+1));
+                }
+                if (ea.size() > 0) {
+                    // not all expected args found
+                    return null;
+                }
+                return new DockerContainerInfo("anid", "99.99.99.99");
+            }
+        });
+
+        LocalDockerServiceManager sm = new LocalDockerServiceManager(dc);
+
+        HealthCheck hc = HealthCheck.builder(HealthCheck.Type.COMMAND).
+                parameters("curl --fail http://localhost:8080 || exit 1").
+                interval(71).maxFailures(11).timeout(90).build();
+        ServiceConfig sc = ServiceConfig.builder("MySvc", "img1").healthCheck(hc).build();
+        ContainerImpl ctr = sm.createDockerContainer(sc);
+
+        assertEquals("anid", ctr.getID());
+        assertEquals("99.99.99.99", ctr.getHostName());
     }
 }
