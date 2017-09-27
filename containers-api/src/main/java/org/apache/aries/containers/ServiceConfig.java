@@ -38,30 +38,27 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public class ServiceConfig {
-    private final String[] commandLine;
-    private final String containerImage;
-    private final List<Integer> containerPorts;
-    private final String entryPoint;
-    private final Map<String, String> envVars;
-    private final List<HealthCheck> healthChecks;
-    private final double requestedCPUunits;
-    private final int requestedInstances;
-    private final double requestedMemory; // in MiB
-    private final String serviceName;
 
-    private ServiceConfig(String[] commandLine, String containerImage, List<Integer> containerPorts, String entryPoint,
-            Map<String, String> envVars, List<HealthCheck> healtChecks, double requestedCPUunits, int requestedInstances,
-            double requestedMemory, String serviceName) {
-        this.commandLine = commandLine;
-        this.containerImage = containerImage;
-        this.containerPorts = Collections.unmodifiableList(containerPorts);
-        this.entryPoint = entryPoint;
-        this.envVars = Collections.unmodifiableMap(envVars);
-        this.healthChecks = Collections.unmodifiableList(healtChecks);
-        this.requestedCPUunits = requestedCPUunits;
-        this.requestedInstances = requestedInstances;
-        this.requestedMemory = requestedMemory;
-        this.serviceName = serviceName;
+    private String[] commandLine = new String [] {};
+    private String containerImage;
+    private List<Integer> containerPorts = new ArrayList<>();
+    private String entryPoint;
+    private Map<String, String> envVars = new HashMap<>();
+    private List<HealthCheck> healthChecks = new ArrayList<>();
+    private double requestedCPUunits = 0.5;
+    private int requestedInstances = 1;
+    private double requestedMemory = 64;
+    private String serviceName;
+
+    /** Clients use the Builder to create instances */
+    private ServiceConfig() {
+    }
+
+    private void makeUnmodifiable() {
+        // We don't have setters for our member variables so this is sufficient
+        this.containerPorts = Collections.unmodifiableList(this.containerPorts);
+        this.envVars = Collections.unmodifiableMap(this.envVars);
+        this.healthChecks = Collections.unmodifiableList(this.healthChecks);
     }
 
     /**
@@ -222,20 +219,12 @@ public class ServiceConfig {
     /** A builder for service configurations */
     @ProviderType
     public static class Builder {
-        private final String containerImage;
-        private String[] commandLine = new String [] {};
-        private Map<String, String> envMap = new HashMap<>();
-        private String entryPoint;
-        private List<HealthCheck> healthChecks = new ArrayList<>();
-        private double requestedCpuUnits = 0.5;
-        private int requestedInstances = 1;
-        private double requestedMemory = 64;
-        private List<Integer> ports = new ArrayList<>();
-        private final String serviceName;
+        private final ServiceConfig candidate;
 
         Builder(String serviceName, String containerImage) {
-            this.serviceName = serviceName;
-            this.containerImage = containerImage;
+            candidate = new ServiceConfig();
+            candidate.serviceName = serviceName;
+            candidate.containerImage = containerImage;
         }
 
         /** The command line for the service. Also note that some images may need
@@ -245,7 +234,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder commandLine(String ... commandLine) {
-            this.commandLine = commandLine;
+            candidate.commandLine = commandLine;
             return this;
         }
 
@@ -256,7 +245,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder cpu(double requestedCpuUnits) {
-            this.requestedCpuUnits = requestedCpuUnits;
+            candidate.requestedCPUunits = requestedCpuUnits;
             return this;
         }
 
@@ -268,7 +257,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder entryPoint(String entryPoint) {
-            this.entryPoint = entryPoint;
+            candidate.entryPoint = entryPoint;
             return this;
         }
 
@@ -282,7 +271,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder env(String name, String value) {
-            this.envMap.put(name, value);
+            candidate.envVars.put(name, value);
             return this;
         }
 
@@ -294,8 +283,8 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder env(Map<String, String> envMap) {
-            this.envMap.clear();
-            this.envMap.putAll(envMap);
+            candidate.envVars.clear();
+            candidate.envVars.putAll(envMap);
             return this;
         }
 
@@ -307,7 +296,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder instances(int requestedInstances) {
-            this.requestedInstances = requestedInstances;
+            candidate.requestedInstances = requestedInstances;
             return this;
         }
 
@@ -319,7 +308,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder healthCheck(HealthCheck hc) {
-            this.healthChecks.add(hc);
+            candidate.healthChecks.add(hc);
             return this;
         }
 
@@ -330,7 +319,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder memory(double requestedMemory) {
-            this.requestedMemory = requestedMemory;
+            candidate.requestedMemory = requestedMemory;
             return this;
         }
 
@@ -342,7 +331,7 @@ public class ServiceConfig {
          * @return the current builder for further building.
          */
         public Builder port(int port) {
-            this.ports.add(port);
+            candidate.containerPorts.add(port);
             return this;
         }
 
@@ -352,9 +341,8 @@ public class ServiceConfig {
          * @return An immutable service configuration.
          */
         public ServiceConfig build() {
-            return new ServiceConfig(commandLine, containerImage, ports, entryPoint,
-                    envMap, healthChecks, requestedCpuUnits, requestedInstances, requestedMemory,
-                    serviceName);
+            candidate.makeUnmodifiable();
+            return candidate;
         }
     }
 }
